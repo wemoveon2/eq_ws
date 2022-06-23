@@ -186,6 +186,7 @@ def get_hit_count(num_str: str, rand_digit_amount: int, ti, **kwargs) -> None:
     for _ in range(rand_digit_amount):
         hits += list(str(num_str)).count(str(get_rand_digit()))
     ti.xcom_push(key="hit_count", value=hits)
+    logging.info(f"get_hit_count(): Got {hits} hits")
 
 
 def branching(ti, **kwargs) -> List[str]:
@@ -210,8 +211,12 @@ def branching(ti, **kwargs) -> List[str]:
     print(count)
 
     if count > HIT_COUNT_THRESHOLD:
+        logging.info(f"branching():{count} is greater than {HIT_COUNT_THRESHOLD}")
         return TASK_ID_ACTION_ON_GT_THRESHOLD
     elif count <= HIT_COUNT_THRESHOLD:
+        logging.info(
+            f"branching():{count} is less than or equals to {HIT_COUNT_THRESHOLD}"
+        )
         return TASK_ID_ACTION_ON_LTE_THRESHOLD
     else:
         raise AirflowFailException
@@ -254,6 +259,7 @@ def action_on_gt_threshold(ti, **kwargs) -> None:
                 **{"job_id": job_id, "is_successful": True, "is_gt_th": True},
             )
             trans.commit()
+            logging.info(f"action_on_gt_threshold(): Job #{job_id} recorded")
         except:
             trans.rollback()
             raise AirflowFailException
@@ -296,6 +302,7 @@ def action_on_lte_threshold(ti, **kwargs) -> None:
                 **{"job_id": job_id, "is_successful": True, "is_gt_th": False},
             )
             trans.commit()
+            logging.info(f"action_on_lte_threshold(): Job #{job_id} recorded")
         except:
             trans.rollback()
             raise AirflowFailException
@@ -337,6 +344,7 @@ def action_on_error(ti, **kwargs) -> None:
                 **{"job_id": job_id, "is_successful": False, "is_gt_th": None},
             )
             trans.commit()
+            logging.error(f"action_on_error(): Encountered error on job {job_id}")
         except:
             trans.rollback()
             raise AirflowFailException
