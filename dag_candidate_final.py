@@ -12,10 +12,6 @@ from airflow.operators.python import BranchPythonOperator, PythonOperator
 MODULE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 DAG_ID = MODULE_NAME
 
-# TODO: replace xxx with the DB information defined in the official
-#  docker-compose YAML file for Airflow. This task will make use of the
-#  same PostgreSQL server and the same database/schema that Airflow uses.
-#  Note: the Airflow version can be found in the description for this task.
 DB_HOST = "postgres"
 DB_PORT = "5432"
 DB_USERNAME = "airflow"
@@ -100,14 +96,14 @@ def create_tables(**kwargs) -> None:
     or by using ORM (based on the information in the provided query).
     """
 
-    # TODO: your code here
     with get_engine().connect() as conn:
         trans = conn.begin()
         try:
             conn.execute(sqlalchemy.text(QUERY_JOB_TABLE_CREATION))
             conn.execute(sqlalchemy.text(QUERY_JOB_RESULT_TABLE_CREATION))
             trans.commit()
-        except:
+        except Exception as e:
+            logging.error(e)
             trans.rollback()
             raise AirflowFailException
 
@@ -131,7 +127,6 @@ def insert_recs(ti, **kwargs) -> None:
         - add other thing you think necessary.
     """
 
-    # TODO: your code here
     with get_engine().connect() as conn:
         trans = conn.begin()
         try:
@@ -154,7 +149,8 @@ def insert_recs(ti, **kwargs) -> None:
                 f"""insert_recs(): Sucessfully inserted job #{job_id} 
                         into {JOB_TABLE_NAME} and {JOB_RESULT_TABLE_NAME}"""
             )
-        except:
+        except Exception as e:
+            logging.error(e)
             trans.rollback()
             raise AirflowFailException
 
@@ -181,7 +177,6 @@ def get_hit_count(num_str: str, rand_digit_amount: int, ti, **kwargs) -> None:
     if is_raise_error():
         raise ValueError
 
-    # TODO: your code here
     hits = 0
     for _ in range(rand_digit_amount):
         hits += list(str(num_str)).count(str(get_rand_digit()))
@@ -206,9 +201,9 @@ def branching(ti, **kwargs) -> List[str]:
         - add other thing you think necessary.
     """
 
-    # TODO: your code here
     count = int(ti.xcom_pull(key="hit_count", task_ids=TASK_ID_GET_HIT_COUNT))
     print(count)
+    assert isinstance(HIT_COUNT_THRESHOLD, int) and isinstance(count, int)
 
     if count > HIT_COUNT_THRESHOLD:
         logging.info(f"branching():{count} is greater than {HIT_COUNT_THRESHOLD}")
@@ -241,7 +236,6 @@ def action_on_gt_threshold(ti, **kwargs) -> None:
         - add other thing you think necessary.
     """
 
-    # TODO: your code here
     job_id = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
     with get_engine().connect() as conn:
         trans = conn.begin()
@@ -284,7 +278,6 @@ def action_on_lte_threshold(ti, **kwargs) -> None:
         - add other thing you think necessary.
     """
 
-    # TODO: your code here
     job_id = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
     with get_engine().connect() as conn:
         trans = conn.begin()
@@ -326,7 +319,6 @@ def action_on_error(ti, **kwargs) -> None:
         - add other thing you think necessary.
     """
 
-    # TODO: your code here
     job_id = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
     with get_engine().connect() as conn:
         trans = conn.begin()
@@ -352,16 +344,11 @@ def action_on_error(ti, **kwargs) -> None:
 
 # DAG creation ##########################################
 
-default_args = {
-    "owner": DAG_ID[4:],
-    "end_date": "2100-01-01",
-    # TODO: add other arguments to make the pipeline runs as expected
-}
+default_args = {"owner": DAG_ID[4:], "end_date": "2100-01-01", "depends_on_past": False}
 
 dag_kwargs = {
     "dag_id": DAG_ID,
     "default_args": default_args,
-    # TODO: add other arguments to make the pipeline runs as expected
     "description": "EQ Work Sample",
     "schedule_interval": timedelta(minutes=1),
     "start_date": datetime(2022, 1, 1),
@@ -398,13 +385,9 @@ with DAG(**dag_kwargs) as dag:
     task_action_on_error = PythonOperator(
         task_id=TASK_ID_ACTION_ON_ERROR,
         python_callable=action_on_error,
-        # TODO: add argument(s) such that this task runs only when its previous
-        #  task fails
         trigger_rule="one_failed",
     )
 
-    # TODO: define the dependencies between DAG tasks.
-    #   Your code here.
     (
         task_create_tables
         >> task_insert_recs
