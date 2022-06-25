@@ -7,13 +7,13 @@ The DAG file for Airflow can be found [here](https://github.com/wemoveon2/data_e
 
 ## Common Problems
 
-The notebook removes **all** records with **identical** `geoinfo` and `timest` from `~/data/DataSample.csv`. Records with `timest` differences in the range of miliseconds are not considered as identical even with identical `geoinfo`. 
+**All** records with **identical** `geoinfo` **and** `timest` is removed from `~/data/DataSample.csv`. Records with duplicated `timest` is kept. Records with `timest` differences in the range of miliseconds are not considered as identical even with identical `geoinfo` due to velocity of requests. 
 
-Final DataFrame containing the non-suspicious records and the assigned `POIID` based on shortest haversine distance in kilometers is written out to `~/data/DataSample_Assigned.csv`.
+A PySpark DataFrame containing the `_ID` of non-suspicious records and their `POIID` assigned based on shortest haversine distance (km) is created as the final output for downstream analysis.
 
 ## Data Track Problems
 
-The DAG file requires the `postgres` connection at port 5432 as seen [here](https://github.com/wemoveon2/data_eng_work_sample/blob/main/ws-data-pipeline/docker-compose.yml). 
+The DAG file requires the `postgres` connection at port 5432 as seen [here](https://github.com/wemoveon2/data_eng_work_sample/blob/main/ws-data-pipeline/docker-compose.yml). The created DAG runs every minute, logging its progress and results in a `postgres` database at each run. All explicit database operations utilizes `SQLAlchemy`.
 
 - DAG Config
 	- [x] Scheduled to run every minute.
