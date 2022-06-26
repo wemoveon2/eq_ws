@@ -15,7 +15,7 @@ A PySpark DataFrame containing the `_ID` of non-suspicious records and their `PO
 
 The DAG file requires the `postgres` connection at port 5432 as seen [here](https://github.com/wemoveon2/data_eng_work_sample/blob/main/ws-data-pipeline/docker-compose.yml). The created DAG runs every minute, logging its progress and results in a `postgres` database at each run. All explicit database operations utilizes `SQLAlchemy`.
 
-- DAG Config
+- DAG/Pipeline Config
 	- [x] Scheduled to run every minute.
 	- [x] Pipeline automatically scheduled to run without manual triggering when placed in `./dag` folder.
 	- [x] No backfilling.
