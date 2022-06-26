@@ -1,13 +1,13 @@
 # README
 
-Data engineering work samples for EQ Works. Utilizes Apache Spark and Apache Airflow. 
+Data engineering work samples for EQ Works. Utilizes Apache Spark, Apache Airflow, and SQLAlchemy to interact with a Postgres database. 
 
 Solutions for the common questions can be found [here](https://github.com/wemoveon2/data_eng_work_sample/blob/main/common_problems.ipynb).
 The DAG file for Airflow can be found [here](https://github.com/wemoveon2/data_eng_work_sample/blob/main/dag_candidate_final.py).
 
 ## Common Problems
 
-**All** records with **identical** `geoinfo` **and** `timest` is removed from `~/data/DataSample.csv`. Records with duplicated `timest` is kept. Records with `timest` differences in the range of miliseconds are not considered as identical even with identical `geoinfo` due to velocity of requests. 
+**All** records with **identical** `geoinfo` **and** `TimeSt` are removed from `~/data/DataSample.csv`. Records with duplicated `TimeSt` is kept. Records with `TimeSt` differences in the range of miliseconds are not considered as identical even with identical `geoinfo` due to velocity of requests. 
 
 A PySpark DataFrame containing the `_ID` of non-suspicious records and their `POIID` assigned based on shortest haversine distance (km) is created as the final output for downstream analysis.
 
