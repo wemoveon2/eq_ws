@@ -352,6 +352,7 @@ dag_kwargs = {
     "description": "EQ Work Sample",
     "schedule_interval": timedelta(minutes=1),
     "start_date": datetime(2022, 1, 1),
+    'max_active_runs': 1,
     "catchup": False,
     "is_paused_upon_creation": False,
 }
