@@ -29,3 +29,20 @@ The DAG file requires the `postgres` connection at port 5432 as seen [here](http
 	- [x] 5. Runs if 3 successful, branches depending on if value from task 3 is G/L than threshold.
 	- [x] 6. Update records created by 2 to indicate count is greater, ends pipeline.
 	- [x] 7. Updates records created by 2 to indicate count is lesser, ends pipeline.
+- Feedback
+	- Clean Up & Label:
+		- [x] Remove extra de-dupe on timestamp.
+	- Correctness: 
+		- [x] Ensure [get_hit_count] is implemented as expected.
+	- Cleanness & Maintainability:
+		- [ ] Refactor to shorten lines and to ensure adherence DRY.
+			- Should replace explicit queries with function.
+	- Readability:
+		- [x] Add type hints for variables defined in functions. 
+	- Robustness:
+		- [x] Add validation for task inputs.
+	- Efficiency:
+		- [ ] Determine bottlenecks in code.
+			- Look into where I might have made mistakes implementing the `Engine` calls
+
+
