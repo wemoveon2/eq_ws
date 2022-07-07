@@ -42,7 +42,7 @@ The DAG file requires the `postgres` connection at port 5432 as seen [here](http
 	- Robustness:
 		- [x] Add validation for task inputs.
 	- Efficiency:
-		- [ ] Determine bottlenecks in code.
-			- Look into where I might have made mistakes implementing the `Engine` calls
+		- [x] Determine bottlenecks in code.
+			- The issue was in using a list in `get_hit_count`, fixed by using `set`
 
 

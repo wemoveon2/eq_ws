@@ -96,15 +96,12 @@ def create_tables(**kwargs) -> None:
     or by using ORM (based on the information in the provided query).
     """
 
-    with get_engine().connect() as conn:
-        trans = conn.begin()
+    with get_engine().begin() as conn:
         try:
             conn.execute(sqlalchemy.text(QUERY_JOB_TABLE_CREATION))
             conn.execute(sqlalchemy.text(QUERY_JOB_RESULT_TABLE_CREATION))
-            trans.commit()
         except Exception as e:
             logging.error(e)
-            trans.rollback()
             raise AirflowFailException
 
 
@@ -127,8 +124,7 @@ def insert_recs(ti, **kwargs) -> None:
         - add other thing you think necessary.
     """
 
-    with get_engine().connect() as conn:
-        trans = conn.begin()
+    with get_engine().begin() as conn:
         try:
             job_id = conn.execute(
                 sqlalchemy.text(
@@ -144,14 +140,12 @@ def insert_recs(ti, **kwargs) -> None:
             )
             print(f"Job ID#{job_id}")
             ti.xcom_push(key="job_id", value=job_id)
-            trans.commit()
             logging.info(
                 f"""insert_recs(): Sucessfully inserted job #{job_id} 
                         into {JOB_TABLE_NAME} and {JOB_RESULT_TABLE_NAME}"""
             )
         except Exception as e:
             logging.error(e)
-            trans.rollback()
             raise AirflowFailException
 
 
@@ -241,8 +235,7 @@ def action_on_gt_threshold(ti, **kwargs) -> None:
     """
 
     job_id: str = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
-    with get_engine().connect() as conn:
-        trans = conn.begin()
+    with get_engine().begin() as conn:
         try:
             conn.execute(
                 sqlalchemy.text(
@@ -256,10 +249,8 @@ def action_on_gt_threshold(ti, **kwargs) -> None:
                 ),
                 **{"job_id": job_id, "is_successful": True, "is_gt_th": True},
             )
-            trans.commit()
             logging.info(f"action_on_gt_threshold(): Job #{job_id} recorded")
         except:
-            trans.rollback()
             raise AirflowFailException
 
 
@@ -283,8 +274,7 @@ def action_on_lte_threshold(ti, **kwargs) -> None:
     """
 
     job_id: str = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
-    with get_engine().connect() as conn:
-        trans = conn.begin()
+    with get_engine().begin() as conn:
         try:
             conn.execute(
                 sqlalchemy.text(
@@ -298,10 +288,8 @@ def action_on_lte_threshold(ti, **kwargs) -> None:
                 ),
                 **{"job_id": job_id, "is_successful": True, "is_gt_th": False},
             )
-            trans.commit()
             logging.info(f"action_on_lte_threshold(): Job #{job_id} recorded")
         except:
-            trans.rollback()
             raise AirflowFailException
 
 
@@ -324,8 +312,7 @@ def action_on_error(ti, **kwargs) -> None:
     """
 
     job_id: str = ti.xcom_pull(key="job_id", task_ids=TASK_ID_INSERT_RECS)
-    with get_engine().connect() as conn:
-        trans = conn.begin()
+    with get_engine().begin() as conn:
         try:
             conn.execute(
                 sqlalchemy.text(
@@ -339,10 +326,8 @@ def action_on_error(ti, **kwargs) -> None:
                 ),
                 **{"job_id": job_id, "is_successful": False, "is_gt_th": None},
             )
-            trans.commit()
             logging.error(f"action_on_error(): Encountered error on job {job_id}")
         except:
-            trans.rollback()
             raise AirflowFailException
 
 
