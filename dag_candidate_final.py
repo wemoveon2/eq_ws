@@ -2,7 +2,7 @@ import logging
 import os
 import random
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Set
 
 import sqlalchemy
 from airflow import DAG
@@ -77,8 +77,6 @@ def get_engine() -> sqlalchemy.engine.Engine:
 def is_raise_error() -> bool:
     """Returns True with a probability of 0.3."""
     return get_rand_digit() < 3
-
-# def execute_query(query: List[str]) -> None:
 
 
 # Functions for the tasks in the DAG ##########################################
@@ -182,9 +180,9 @@ def get_hit_count(num_str: str, rand_digit_amount: int, ti, **kwargs) -> None:
     assert isinstance(num_str, str) and isinstance(rand_digit_amount, int)
 
     hits: int = 0
-    num_list: List[str] = list(num_str)
+    num_set: Set[str] = set(num_str)
     for _ in range(rand_digit_amount):
-        hits+=1 if str(get_rand_digit()) in num_list else 0
+        hits += 1 if str(get_rand_digit()) in num_set else 0
     ti.xcom_push(key="hit_count", value=hits)
     logging.info(f"get_hit_count(): Got {hits} hits")
 
@@ -206,11 +204,13 @@ def branching(ti, **kwargs) -> List[str]:
         - add other thing you think necessary.
     """
 
-    count: int = int(ti.xcom_pull(key="hit_count", task_ids=TASK_ID_GET_HIT_COUNT))
-    assert isinstance(HIT_COUNT_THRESHOLD, int) and isinstance(count, int)
+    count: int = ti.xcom_pull(key="hit_count", task_ids=TASK_ID_GET_HIT_COUNT)
+
+    assert isinstance(HIT_COUNT_THRESHOLD, int)
+    assert isinstance(count, int)
 
     if count > HIT_COUNT_THRESHOLD:
-        logging.info(f"branching():{count} is greater than {HIT_COUNT_THRESHOLD}")
+        logging.info(f"""branching():{count} is greater than {HIT_COUNT_THRESHOLD}""")
         return [TASK_ID_ACTION_ON_GT_THRESHOLD]
     elif count <= HIT_COUNT_THRESHOLD:
         logging.info(
@@ -356,7 +356,7 @@ dag_kwargs = {
     "description": "EQ Work Sample",
     "schedule_interval": timedelta(minutes=1),
     "start_date": datetime(2022, 1, 1),
-    'max_active_runs': 1,
+    "max_active_runs": 1,
     "catchup": False,
     "is_paused_upon_creation": False,
 }
